@@ -24,6 +24,12 @@ const ICONS = {
   metalblade: ["M12.0 4.6L15.5 3.4L21.2 6.2L19.0 9.7L21.3 12.6L20.3 19.0L16.3 18.0L14.2 21.0L7.9 22.1L7.7 18.0L4.1 16.9L1.1 11.2L5.0 9.7L4.9 6.0L9.4 1.4z", "M7.2 12a4.8 4.8 0 1 0 9.6 0a4.8 4.8 0 1 0 -9.6 0", "M9.4 12a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0"],
   assistblade: ["M12.0 5.6Q13.3 1.2 17.1 3.3L16.5 7.5Q20.6 5.3 21.8 9.4L18.4 12.0Q22.8 13.3 20.7 17.0L16.5 16.5Q18.7 20.6 14.6 21.8L12.0 18.4Q10.7 22.8 7.0 20.7L7.5 16.5Q3.4 18.7 2.2 14.6L5.6 12.0Q1.2 10.7 3.3 6.9L7.5 7.5Q5.3 3.4 9.4 2.2z", "M8.2 12a3.8 3.8 0 1 0 7.6 0a3.8 3.8 0 1 0 -7.6 0", "M10.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0"],
   accessory: ["M15.5 3.5a5 5 0 0 0-4.6 6.9L3.8 17.5a2.1 2.1 0 0 0 2.9 2.9l7.1-7.1a5 5 0 0 0 6.9-4.6l-3 3-2.8-.7-.7-2.8z"],
+  riblade: ["M13.7 2.2L21.4 8.6L19.7 18.4L10.3 21.8L2.6 15.4L4.3 5.6z", "M6.8 12a5.2 5.2 0 1 0 10.4 0a5.2 5.2 0 1 0 -10.4 0", "M10.0 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0", "M12.0 6.8L15.6 3.4", "M16.5 14.6L17.6 19.4", "M7.5 14.6L2.8 13.2"],
+  random: ["M6 4v9.5", "M6 19.2h.01", "M11.2 8.3a3.6 3.6 0 1 1 5.6 3c-1.4.9-2.2 1.6-2.2 3.2", "M14.6 19.2h.01"],
+  enemy: ["M12 2c.3 2.4 2.7 3.7 3.9 5.6.8 1.3 1.1 2.6 1 4.1 1.3-.6 1.9-1.8 2-3.2 1.5 1.7 2.1 3.5 2.1 5.6a9 9 0 0 1-18 0c0-2.2.8-4.1 2.2-5.8.3 1 .8 1.8 1.6 2.4-.2-3.3 1.4-5.8 3.6-8z", "M7.6 19v-1.4a4.4 4.1 0 1 1 8.8 0V19z", "M10.6 19v1.5", "M13.4 19v1.5", "M9.3 15.6l1.4.5", "M14.7 15.6l-1.4.5"],
+  search: ["M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z", "M15.4 15.4L20.5 20.5"],
+  lock: ["M7 11V8a5 5 0 0 1 10 0v3", "M5.5 11h13v9.5h-13z"],
+  unlock: ["M7 11V8a5 5 0 0 1 9.6-2", "M5.5 11h13v9.5h-13z"],
   gym: ["M6 7v10", "M3 9v6", "M18 7v10", "M21 9v6", "M6 12h12"],
   cart: ["M3 4h2l2.4 11h10.2L20 7H6.2", "M7 20a1.2 1.2 0 102.4 0a1.2 1.2 0 10-2.4 0", "M15 20a1.2 1.2 0 102.4 0a1.2 1.2 0 10-2.4 0"],
   diet: ["M4 11h16a8 8 0 01-16 0z", "M9 7c0-2 2-2 2-4", "M14 7c0-2 2-2 2-4"],
@@ -44,6 +50,7 @@ const def = () => ({
   beyblade: {parts: [], decks: []},
   gym: {plans: []},
   grocery: [],
+  enemies: [],
   diet: {goal: {kcal: 0, prot: 0, carb: 0, fat: 0}, days: {}},
   wallet: {monthly: 0, limits: {}, expenses: []}
 });
@@ -59,6 +66,7 @@ function normalize(d) {
     record: String(p.record || ''), recordDate: String(p.recordDate || '')
   }));
   o.grocery = arr(d.grocery);
+  o.enemies = arr(d.enemies).map(e => ({id: e.id || uid(), name: String(e.name || ''), photo: safeImg(e.photo) ? e.photo : null, note: String(e.note || '')}));
   if (d.diet && typeof d.diet === 'object') {
     o.diet.goal = Object.assign(o.diet.goal, d.diet.goal || {});
     o.diet.days = d.diet.days && typeof d.diet.days === 'object' ? d.diet.days : {};
@@ -80,9 +88,10 @@ function toast(m) {
 }
 
 /* ---------- UI state ---------- */
-const ui = {tab: 'home', bey: 'blades', day: localDate(), month: localDate().slice(0, 7), sheet: null, focus: null, lastKey: ''};
+const ui = {tab: 'home', bey: 'blades', search: false, q: '', rn: 1, rnd: null, day: localDate(), month: localDate().slice(0, 7), sheet: null, focus: null, lastKey: ''};
 const CATS = [
   {id: 'blades', label: 'Blades', single: 'Blade', icon: 'beyblade', accent: 'pink'},
+  {id: 'riblades', label: 'RIBlades', single: 'RIBlade', icon: 'riblade', accent: 'cyan'},
   {id: 'mainblades', label: 'Main Blades', single: 'Main Blade', icon: 'mainblade', accent: 'pink'},
   {id: 'chips', label: 'Chips', single: 'Chip', icon: 'chip', accent: 'green'},
   {id: 'overblades', label: 'Over Blades', single: 'Over Blade', icon: 'overblade', accent: 'amber'},
@@ -108,7 +117,7 @@ const ask = (msg, yes, label = 'Delete') => { ui.dialog = {msg, yes, label}; };
 const vDialog = () => ui.dialog ? `<div class="hub-sheet-scrim hub-dialog-scrim"><div class="hub-sheet hub-dialog" role="alertdialog" aria-label="Confirm"><p class="hub-dialog__msg">${esc(ui.dialog.msg)}</p><div class="hub-actions"><button type="button" class="hub-btn hub-btn--ghost" data-act="dialogNo">Cancel</button><button type="button" class="hub-btn hub-btn--primary" data-act="dialogYes">${esc(ui.dialog.label)}</button></div></div></div>` : '';
 
 function shell(v) {
-  return `<header class="hub-screen__head"><span class="hub-label">${v.label}</span><h1 class="hub-screen__title">${v.icon ? `<span class="hub-screen__icon" style="color:var(--neon-${v.accent})">${I(v.icon, 30)}</span>` : ''}${esc(v.title)}</h1></header>${v.seg || ''}<main class="hub-scroll ${v.cls || 'hub-list'}">${v.body}</main>${v.fab ? `<button type="button" class="hub-fab" data-act="fab">${I('plus', 20)}Add</button>` : ''}${nav()}${vSheet()}${vDialog()}`;
+  return `<header class="hub-screen__head"><span class="hub-label">${v.label}</span><h1 class="hub-screen__title">${v.icon ? `<span class="hub-screen__icon" style="color:var(--neon-${v.accent})">${I(v.icon, 30)}</span>` : ''}${esc(v.title)}${v.titleExtra || ''}</h1></header>${v.search || v.seg || ''}<main class="hub-scroll ${v.cls || 'hub-list'}">${v.body}</main>${v.fab ? `<button type="button" class="hub-fab" data-act="fab">${I('plus', 20)}Add</button>` : ''}${nav()}${vSheet()}${vDialog()}`;
 }
 
 /* ---------- viste ---------- */
@@ -120,6 +129,8 @@ function vHome() {
     {id: 'grocery', label: 'Grocery', icon: 'cart', accent: 'cyan', badge: open},
     {id: 'diet', label: 'Diet', icon: 'diet', accent: 'green', badge: null},
     {id: 'wallet', label: 'Wallet', icon: 'wallet', accent: 'green', badge: null},
+    {id: 'random', label: 'RandomBeys', icon: 'random', accent: 'cyan', badge: null},
+    {id: 'enemies', label: 'Enemies', icon: 'enemy', accent: 'amber', badge: S.enemies.length},
     {id: 'backup', label: 'Backup', icon: 'settings', accent: 'violet', badge: null}
   ];
   return {label: 'SYS // ONLINE', title: 'Home', cls: 'hub-screen__grid', body: tiles.map(t => `<button type="button" class="hub-tile" style="--accent:var(--neon-${t.accent})" data-act="go" data-t="${t.id}"><span class="hub-tile__icon">${I(t.icon, 28)}</span><span class="hub-tile__label">${t.label}</span>${t.badge ? `<span class="hub-tile__badge">${t.badge}</span>` : ''}</button>`).join('')};
@@ -134,14 +145,116 @@ function deckPanel(d) {
   const sel = (i, c, cat) => { const k = cat.single.toLowerCase(); return `<select class="hub-input" aria-label="${cat.single}, combo ${i + 1}" data-chg="comboSet" data-id="${esc(d.id)}" data-i="${i}" data-k="${k}"><option value="">${cat.single}</option>${P.filter(p => p.category === cat.id).map(p => `<option value="${esc(p.id)}"${c[k] === p.id ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select>`; };
   return `<section class="hub-panel" style="--accent:var(--neon-green)"><div class="hub-panel__head"><h2 class="hub-panel__title">${esc(d.name)}</h2>${delBtn('deckDel', d.id, 'Delete deck')}</div>${combos.map((c, i) => `<div class="hub-combo"><span class="hub-label">Combo ${i + 1}</span><div class="hub-combo__sel">${DECK_CATS.map(cat => sel(i, c || {}, cat)).join('')}</div></div>`).join('')}</section>`;
 }
+const norm = x => String(x == null ? '' : x).toLowerCase();
+function beySearch() {
+  const q = norm(ui.q).trim().split(/\s+/).filter(Boolean);
+  if (!q.length) return null;
+  const ord = id => CATS.findIndex(c => c.id === id);
+  return S.beyblade.parts.filter(p => { const c = catById(p.category), hay = norm([p.name, p.note, c.label, c.single, p.weight].join(' ')); return q.every(w => hay.includes(w)); })
+    .sort((a, b) => ord(a.category) - ord(b.category) || norm(a.name).localeCompare(norm(b.name)));
+}
 function vBey() {
-  const B = S.beyblade;
+  const B = S.beyblade, res = ui.search ? beySearch() : null;
   const tab = c => ({id: c.id, label: c.label, accent: c.accent, count: B.parts.filter(p => p.category === c.id).length});
   const tabs = CATS.filter(c => c.id !== 'accessories').map(tab).concat([{id: 'decks', label: 'Decks', accent: 'green', count: B.decks.length}], [tab(catById('accessories'))]);
   let body;
-  if (ui.bey === 'decks') body = B.decks.map(deckPanel).join('') || empty(B.parts.length ? 'No decks yet. Tap Add to create the first one.' : 'Add some parts first, then build decks from them.');
+  if (res) body = res.map(partRow).join('') || empty('No parts match your search.');
+  else if (ui.search) body = empty('Type to search every category.');
+  else if (ui.bey === 'decks') body = B.decks.map(deckPanel).join('') || empty(B.parts.length ? 'No decks yet. Tap Add to create the first one.' : 'Add some parts first, then build decks from them.');
   else { const cat = catById(ui.bey); body = B.parts.filter(p => p.category === cat.id).map(partRow).join('') || empty(`No ${cat.label.toLowerCase()} yet. Tap Add to create the first one.`); }
-  return {label: `COLLECTION // ${B.parts.length} PARTS`, title: 'Beyblade', icon: 'beyblade', accent: 'violet', seg: seg(tabs, ui.bey, 'beyTab'), body, fab: true};
+  const titleExtra = `<button type="button" class="hub-iconbtn hub-head__btn" data-act="searchTog" aria-label="Search all categories" aria-pressed="${!!ui.search}">${I('search', 22)}</button>`;
+  const search = ui.search ? `<div class="hub-search">${I('search', 18)}<input id="bey-q" class="hub-input" type="search" placeholder="Search all categories" value="${esc(ui.q || '')}" autocomplete="off" enterkeyhint="search" aria-label="Search all categories"></div>` : '';
+  return {label: ui.search ? `SEARCH // ${res ? res.length : 0} FOUND` : `COLLECTION // ${B.parts.length} PARTS`, title: 'Beyblade', icon: 'beyblade', accent: 'violet', seg: seg(tabs, ui.bey, 'beyTab'), search, titleExtra, body, fab: true};
+}
+
+/* ---------- Enemies ---------- */
+function enemyRow(e) {
+  const img = safeImg(e.photo);
+  return `<div class="hub-row hub-row--part" style="--accent:var(--neon-amber)"><span class="hub-thumb">${img ? `<img src="${img}" alt="">` : I('enemy', 32)}</span><span class="hub-row__text"><span class="hub-row__name">${esc(e.name)}</span>${e.note ? `<span class="hub-row__note">${esc(e.note)}</span>` : ''}</span><span class="hub-row__acts"><button type="button" class="hub-iconbtn" data-act="enemyEdit" data-id="${esc(e.id)}" aria-label="Edit enemy">${I('note', 18)}</button>${delBtn('enemyDel', e.id, 'Delete enemy')}</span></div>`;
+}
+function vEnemies() {
+  return {label: `TARGETS // ${S.enemies.length}`, title: 'Enemies', icon: 'enemy', accent: 'amber', body: S.enemies.map(enemyRow).join('') || empty('No enemies yet. Tap Add to create the first one.'), fab: true};
+}
+
+/* ---------- RandomBeys ---------- */
+/* forme di combo: testa (pezzi in cima) + coda (ratchet+bit, RWBit al posto dei due, solo bit per RIBlade) */
+const RB_TPL = [
+  {id: 'std', head: ['blades'], tails: ['rb', 'rw']},
+  {id: 'ri', head: ['riblades'], tails: ['b']},
+  {id: 'main', head: ['chips', 'mainblades'], tails: ['rb', 'rw']},
+  {id: 'cx', head: ['chips', 'overblades', 'metalblades', 'assistblades'], tails: ['rb', 'rw']}
+];
+const RB_TAILS = {rb: ['ratchets', 'bits'], rw: ['rwbits'], b: ['bits']};
+const RB_CM_RATCHET = /(^|\D)(3-85|4-55|7-55)(\D|$)/;
+const isCM = p => !['ratchets', 'rwbits', 'bits'].includes(p.category) && /clockmirage/.test(norm(p.name).replace(/[^a-z]/g, ''));
+const ratchetOk = p => RB_CM_RATCHET.test(String(p.name || '').replace(/\s+/g, ''));
+const cmOk = ps => !ps.some(p => p && isCM(p)) || !ps.some(p => p && (p.category === 'rwbits' || (p.category === 'ratchets' && !ratchetOk(p))));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rbShapes = () => RB_TPL.flatMap(t => t.tails.map(tl => ({tpl: t.id, tail: tl, cats: t.head.concat(RB_TAILS[tl])})));
+
+function rbFill(bey, used, byCat, P) {
+  const added = [], ps = bey.slots.map(s => s.id ? P[s.id] : null);
+  for (let k = 0; k < bey.slots.length; k++) {
+    const s = bey.slots[k]; if (s.id) continue;
+    const ok = (byCat[s.cat] || []).filter(p => { if (used.has(p.id)) return false; ps[k] = p; return cmOk(ps); });
+    ps[k] = null;
+    if (!ok.length) { added.forEach(x => { x.id = null; used.delete(x.was); }); return false; }
+    const pick = ok[Math.floor(Math.random() * ok.length)];
+    s.id = pick.id; s.was = pick.id; ps[k] = pick; used.add(pick.id); added.push(s);
+  }
+  bey.slots.forEach(s => { delete s.was; });
+  return true;
+}
+function rbBuild(n, keep) {
+  const P = {}, byCat = {};
+  S.beyblade.parts.forEach(p => { P[p.id] = p; (byCat[p.category] = byCat[p.category] || []).push(p); });
+  const shapes = rbShapes();
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const used = new Set(), beys = [];
+    if (keep) keep.forEach(b => b.slots.forEach(s => { if (s.locked && P[s.id]) used.add(s.id); }));
+    let fail = false;
+    for (let i = 0; i < n && !fail; i++) {
+      const old = keep && keep[i], hasLock = !!old && old.slots.some(s => s.locked && P[s.id]);
+      const cands = hasLock ? [{tpl: old.tpl, tail: old.tail, cats: old.slots.map(s => s.cat)}] : shuffle(shapes);
+      let got = null;
+      for (const sh of cands) {
+        const bey = {tpl: sh.tpl, tail: sh.tail, slots: sh.cats.map((cat, k) => { const o = hasLock && old.slots[k]; return o && o.locked && P[o.id] ? {cat, id: o.id, locked: true} : {cat, id: null, locked: false}; })};
+        if (rbFill(bey, used, byCat, P)) { got = bey; break; }
+      }
+      if (got) beys.push(got); else fail = true;
+    }
+    if (!fail) return beys;
+  }
+  return null;
+}
+/* quante combo diverse si possono costruire con UN bey, dato l'inventario */
+function rbCombos() {
+  const n = {}, cm = {}; let rok = 0;
+  S.beyblade.parts.forEach(p => { n[p.category] = (n[p.category] || 0) + 1; if (isCM(p)) cm[p.category] = (cm[p.category] || 0) + 1; if (p.category === 'ratchets' && ratchetOk(p)) rok++; });
+  const g = (o, k) => o[k] || 0; let total = 0;
+  for (const t of RB_TPL) {
+    const all = t.head.reduce((a, h) => a * g(n, h), 1), clean = t.head.reduce((a, h) => a * (g(n, h) - g(cm, h)), 1), dirty = all - clean;
+    for (const tl of t.tails) {
+      const normal = tl === 'rb' ? g(n, 'ratchets') * g(n, 'bits') : tl === 'rw' ? g(n, 'rwbits') : g(n, 'bits');
+      const withCM = tl === 'rb' ? rok * g(n, 'bits') : tl === 'rw' ? 0 : g(n, 'bits');
+      total += clean * normal + dirty * withCM;
+    }
+  }
+  return total;
+}
+function vRandom() {
+  const total = rbCombos(), P = {}; S.beyblade.parts.forEach(p => { P[p.id] = p; });
+  const counter = `<div class="hub-rnd__count" role="radiogroup" aria-label="Number of beys">${[1, 2, 3].map(k => `<button type="button" role="radio" aria-checked="${ui.rn === k}" class="hub-choice${ui.rn === k ? ' is-active' : ''}" style="--accent:var(--neon-cyan)" data-act="rbCount" data-n="${k}"><span>${k}</span></button>`).join('')}</div>`;
+  const slot = (s, bi, si) => {
+    const p = P[s.id], cat = catById(s.cat), img = p && safeImg(p.photo);
+    const lab = s.cat === 'rwbits' ? 'RWBit // ratchet + bit' : cat.single;
+    return `<button type="button" class="hub-rslot${s.locked ? ' is-locked' : ''}" style="--accent:var(--neon-${cat.accent})" data-act="rbLock" data-b="${bi}" data-s="${si}" aria-pressed="${!!s.locked}" aria-label="${s.locked ? 'Unlock' : 'Lock'} ${esc(p ? p.name : cat.single)}"><span class="hub-thumb">${img ? `<img src="${img}" alt="">` : I(cat.icon, 24)}</span><span class="hub-row__text"><span class="hub-row__name">${esc(p ? p.name : '(removed)')}</span><span class="hub-label">${esc(lab)}</span></span><span class="hub-rslot__lock">${I(s.locked ? 'lock' : 'unlock', 20)}</span></button>`;
+  };
+  let body;
+  if (!ui.rnd) body = `<div class="hub-rnd__start"><span class="hub-label">Beys</span>${counter}<button type="button" class="hub-btn hub-btn--primary hub-rnd__go" data-act="rbGen">Generate</button></div>`;
+  else body = ui.rnd.map((b, bi) => `<section class="hub-panel" style="--accent:var(--neon-cyan)"><div class="hub-panel__head"><h2 class="hub-panel__title">Bey ${bi + 1}</h2></div>${b.slots.map((s, si) => slot(s, bi, si)).join('')}</section>`).join('')
+    + `<span class="hub-label hub-rnd__lbl">Beys</span>${counter}<div class="hub-rnd__actions"><button type="button" class="hub-btn hub-btn--secondary" data-act="rbReroll">Reroll unlocked</button><button type="button" class="hub-btn hub-btn--primary" data-act="rbGen">Generate</button></div>`;
+  return {label: `RANDOMIZER // ${total ? total.toLocaleString('en-GB') + ' POSSIBLE COMBOS' : 'NO VALID COMBOS'}`, title: 'RandomBeys', icon: 'random', accent: 'cyan', cls: 'hub-rnd', body};
 }
 
 function vGym() {
@@ -251,6 +364,12 @@ const SHEETS = {
   deck: {title: 'Add deck', fields: [{k: 'name', label: 'Name', req: 1, ph: 'e.g. Tournament deck'}],
     valid: v => !!(v.name || '').trim(),
     save: v => { S.beyblade.decks.push({id: uid(), name: v.name.trim(), combos: [0, 1, 2].map(() => ({blade: '', ratchet: '', bit: ''}))}); ui.bey = 'decks'; }},
+  enemy: {title: 'Add enemy', editTitle: 'Edit enemy', fields: [{k: 'name', label: 'Name', req: 1, ph: 'e.g. Rival from the club'}, {k: 'photo', type: 'photo'}, {k: 'note', label: 'Note', type: 'area', ph: 'e.g. Plays attack decks'}],
+    valid: v => !!(v.name || '').trim(),
+    save: v => {
+      const data = {name: v.name.trim(), photo: v.photo || null, note: (v.note || '').trim()}, e = v.id && byId(S.enemies, v.id);
+      if (e) Object.assign(e, data); else S.enemies.push(Object.assign({id: uid()}, data));
+    }},
   plan: {title: 'Plan', fields: [{k: 'name', label: 'Name', req: 1, ph: 'e.g. Push'}, {k: 'exercises', label: 'Exercises', type: 'area', ph: 'One per line'}, {k: 'record', label: 'Record', ph: 'e.g. 60 kg x 8'}],
     valid: v => !!(v.name || '').trim(),
     save: v => {
@@ -328,7 +447,7 @@ function snap() {
 }
 
 /* ---------- render ---------- */
-const VIEWS = {home: vHome, beyblade: vBey, gym: vGym, grocery: vGrocery, diet: vDiet, wallet: vWallet, backup: vBackup};
+const VIEWS = {home: vHome, beyblade: vBey, gym: vGym, grocery: vGrocery, diet: vDiet, wallet: vWallet, backup: vBackup, random: vRandom, enemies: vEnemies};
 function render() {
   const sc = document.querySelector('.hub-scroll');
   const keep = sc ? sc.scrollTop : 0;
@@ -338,6 +457,7 @@ function render() {
   if (nsc && key === ui.lastKey) nsc.scrollTop = keep;
   ui.lastKey = key;
   if (ui.tab === 'beyblade') { const a = document.querySelector('.hub-seg__item.is-active'); if (a && a.scrollIntoView) a.scrollIntoView({block: 'nearest', inline: 'center'}); }
+  if (ui.focus === 'search') { const q = document.getElementById('bey-q'); if (q) q.focus(); ui.focus = null; }
   if (ui.focus === 'sheet') { const el = document.querySelector('.hub-sheet .hub-input'); if (el) el.focus(); ui.focus = null; }
   if (ui.tab === 'backup' && navigator.storage && navigator.storage.persisted) navigator.storage.persisted().then(p => { const e = document.getElementById('persist'); if (e) e.textContent = p ? 'STORAGE // PROTECTED' : 'STORAGE // STANDARD (INSTALL THE APP TO PROTECT IT)'; });
 }
@@ -375,7 +495,8 @@ function fileToThumb(file, size) {
 /* ---------- azioni ---------- */
 const byId = (arr, id) => arr.find(x => x.id === id);
 const A = {
-  go: el => { ui.tab = el.dataset.t; ui.sheet = null; },
+  go: el => { ui.tab = el.dataset.t; ui.sheet = null; ui.search = false; ui.q = ''; },
+  searchTog: () => { ui.search = !ui.search; ui.q = ''; if (ui.search) ui.focus = 'search'; },
   beyTab: el => { ui.bey = el.dataset.id; },
   fab: () => {
     if (ui.tab === 'beyblade') ui.bey === 'decks' ? openSheet('deck') : openSheet('part', {category: ui.bey});
@@ -383,6 +504,7 @@ const A = {
     else if (ui.tab === 'grocery') openSheet('grocery');
     else if (ui.tab === 'diet') openSheet('meal');
     else if (ui.tab === 'wallet') openSheet('expense');
+    else if (ui.tab === 'enemies') openSheet('enemy');
   },
   scrim: () => { ui.sheet = null; },
   sheetClose: () => { ui.sheet = null; },
@@ -401,6 +523,14 @@ const A = {
   partEdit: el => { const p = byId(S.beyblade.parts, el.dataset.id); if (p) openSheet('part', {id: p.id, name: p.name, category: p.category, photo: p.photo || null, weight: num(p.weight) > 0 ? String(p.weight) : '', note: p.note || ''}); },
   partDel: el => { const id = el.dataset.id; ask('Delete this part?', () => { S.beyblade.parts = S.beyblade.parts.filter(p => p.id !== id); S.beyblade.decks.forEach(d => (d.combos || []).forEach(c => { for (const k of ['blade', 'ratchet', 'bit']) if (c && c[k] === id) c[k] = ''; })); persist(); }); },
   deckDel: el => { const id = el.dataset.id; ask('Delete this deck?', () => { S.beyblade.decks = S.beyblade.decks.filter(d => d.id !== id); persist(); }); },
+
+  enemyEdit: el => { const e = byId(S.enemies, el.dataset.id); if (e) openSheet('enemy', {id: e.id, name: e.name, photo: e.photo || null, note: e.note || ''}); },
+  enemyDel: el => { const id = el.dataset.id; ask('Delete this enemy?', () => { S.enemies = S.enemies.filter(e => e.id !== id); persist(); }); },
+
+  rbCount: el => { ui.rn = +el.dataset.n; },
+  rbGen: () => { const r = rbBuild(ui.rn, null); if (r) ui.rnd = r; else toast('Not enough parts for ' + ui.rn + (ui.rn > 1 ? ' beys' : ' bey')); },
+  rbReroll: () => { if (!ui.rnd) return; const r = rbBuild(ui.rnd.length, ui.rnd); if (r) ui.rnd = r; else toast('Cannot reroll with these locks'); },
+  rbLock: el => { const b = ui.rnd && ui.rnd[+el.dataset.b], s = b && b.slots[+el.dataset.s]; if (s) s.locked = !s.locked; },
 
   planEdit: el => { const p = byId(S.gym.plans, el.dataset.id); openSheet('plan', {id: p.id, name: p.name, exercises: (p.exercises || []).map(e => e.t).join('\n'), record: p.record || ''}); },
   planDel: el => { const id = el.dataset.id; ask('Delete this plan?', () => { S.gym.plans = S.gym.plans.filter(p => p.id !== id); persist(); }); },
@@ -474,11 +604,17 @@ document.addEventListener('change', e => {
   if (C[el.dataset.chg](el) !== false) render();
 });
 document.addEventListener('input', e => {
+  if (e.target.id === 'bey-q') {
+    ui.q = e.target.value; const v = vBey(), sc = document.querySelector('.hub-scroll'), lb = document.querySelector('.hub-screen__head .hub-label');
+    if (sc) { sc.innerHTML = v.body; sc.scrollTop = 0; } if (lb) lb.textContent = v.label;
+    return;
+  }
   if (!ui.sheet || !e.target.closest('.hub-sheet')) return;
   snap();
   const b = document.querySelector('[data-act=sheetSave]'); if (b) b.disabled = !SHEETS[ui.sheet.type].valid(ui.sheet.vals);
 });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'bey-q') { e.target.blur(); return; }
   if (e.key !== 'Enter' || !ui.sheet || e.target.tagName !== 'INPUT') return;
   const b = document.querySelector('[data-act=sheetSave]'); if (b && !b.disabled) { e.preventDefault(); b.click(); }
 });

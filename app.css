@@ -184,3 +184,23 @@ select.hub-input option{background:var(--surface-high);color:var(--ink)}
 .hub-seg__item{white-space:nowrap}
 .hub-choice span{text-align:center}
 .hub-row__note{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font-size:13px;line-height:18px;color:var(--ink-muted)}
+
+.hub-screen__title .hub-head__btn{width:40px;height:40px;margin-left:var(--space-1);color:var(--neon-violet)}
+.hub-head__btn[aria-pressed=true]{color:var(--on-neon);background:var(--neon-violet)}
+.hub-search{position:relative;padding:var(--space-2) var(--space-4) 0}
+.hub-search .hub-icon{position:absolute;left:calc(var(--space-4) + 12px);top:calc(var(--space-2) + 13px);color:var(--ink-muted);pointer-events:none}
+.hub-search .hub-input{padding-left:40px}
+.hub-rnd{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-3) var(--space-4) calc(var(--nav-h) + 40px)}
+.hub-rnd__start{flex:1;min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-4)}
+.hub-rnd__count{display:grid;grid-template-columns:repeat(3,64px);gap:var(--space-2);justify-content:center}
+.hub-rnd__count .hub-choice{min-height:48px;font-size:18px}
+.hub-rnd__lbl{text-align:center;margin-top:var(--space-2)}
+.hub-rnd__go{min-width:220px;min-height:64px;font-size:20px;box-shadow:var(--glow-red)}
+.hub-rnd__actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+.hub-rslot{display:flex;align-items:center;gap:var(--space-3);width:100%;margin:0 0 var(--space-2);padding:var(--space-2);background:var(--surface-high);color:var(--ink);border:1.5px solid var(--line-strong);border-radius:var(--radius-md);font:inherit;text-align:left;cursor:pointer}
+.hub-rslot:last-child{margin-bottom:0}
+.hub-rslot .hub-thumb{width:56px;height:56px}
+.hub-rslot.is-locked{border-color:var(--accent);box-shadow:0 0 10px 0 var(--accent)}
+.hub-rslot__lock{display:flex;flex:none;padding:0 var(--space-2);color:var(--ink-faint)}
+.hub-rslot.is-locked .hub-rslot__lock{color:var(--accent)}
+.hub-rslot:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
