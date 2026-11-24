@@ -181,7 +181,7 @@ function vEnemies() {
 const RB_TPL = [
   {id: 'std', head: ['blades'], tails: ['rb', 'rw']},
   {id: 'ri', head: ['riblades'], tails: ['b']},
-  {id: 'main', head: ['chips', 'mainblades'], tails: ['rb', 'rw']},
+  {id: 'main', head: ['chips', 'mainblades', 'assistblades'], tails: ['rb', 'rw']},
   {id: 'cx', head: ['chips', 'overblades', 'metalblades', 'assistblades'], tails: ['rb', 'rw']}
 ];
 const RB_TAILS = {rb: ['ratchets', 'bits'], rw: ['rwbits'], b: ['bits']};
